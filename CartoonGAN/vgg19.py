@@ -17,7 +17,7 @@ class Vgg19(nn.Module):
             vgg19_npy_path = path
             print(vgg19_npy_path)
         self.data_dict = np.load(vgg19_npy_path, encoding='latin1', allow_pickle=True).item()
-        print('Finished loading vgg19.npy')
+        #print('Finished loading vgg19.npy')
 
     def build(self, rgb, include_fc=False):
         start_time = time.time()
@@ -53,7 +53,7 @@ class Vgg19(nn.Module):
             self.fc8 = self.fc_layer(self.relu7, "fc8")
             self.prob = torch.nn.functional.softmax(self.fc8, dim=1)
             self.data_dict = None
-        print("Finished building vgg19: %ds" % (time.time() - start_time))
+        #print("Finished building vgg19: %ds" % (time.time() - start_time))
 
     def avg_pool(self, bottom, name):
         return torch.nn.functional.avg_pool2d(bottom, kernel_size=2, stride=2, padding=0)
@@ -62,9 +62,10 @@ class Vgg19(nn.Module):
         return torch.nn.functional.max_pool2d(bottom, kernel_size=2, stride=2, padding=0)
 
     def conv_layer(self, bottom, name):
-        filt = self.get_conv_filter(name)
+        filt = self.get_conv_filter(name).to(bottom.device)
+        bias = self.get_bias(name).to(bottom.device).view(1, -1, 1, 1)  # Reshape bias to match conv tensor dimensions
         conv = torch.nn.functional.conv2d(bottom, filt, stride=1, padding=1)
-        bias = self.get_bias(name)
+        #print(f"Layer {name}: bottom shape {bottom.shape}, conv shape {conv.shape}, bias shape {bias.shape}")  # Add debug information
         return torch.nn.functional.relu(conv + bias)
 
     def fc_layer(self, bottom, name):
@@ -73,13 +74,13 @@ class Vgg19(nn.Module):
         for d in shape[1:]:
             dim *= d
         x = bottom.view(-1, dim)
-        weights = self.get_fc_weight(name)
-        biases = self.get_bias(name)
+        weights = self.get_fc_weight(name).to(bottom.device)
+        biases = self.get_bias(name).to(bottom.device)
         fc = torch.matmul(x, weights) + biases
         return fc
 
     def get_conv_filter(self, name):
-        return torch.Tensor(self.data_dict[name][0])
+        return torch.Tensor(np.transpose(self.data_dict[name][0], (3, 2, 0, 1)))
 
     def get_bias(self, name):
         return torch.Tensor(self.data_dict[name][1])

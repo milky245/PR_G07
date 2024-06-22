@@ -31,10 +31,12 @@ def print_fused_image(image, save_dir, name, n):
         fused_image[i] = []
         for j in range(n):
             k = i * n + j
-            image[k] = (image[k] + 1) * 127.5
-            fused_image[i].append(image[k])
+            img = (image[k] + 1) * 127.5  # 将图像像素值转换回0-255范围
+            img = img.transpose(1, 2, 0)  # 将形状从 [channels, height, width] 转换为 [height, width, channels]
+            fused_image[i].append(img)
         fused_image[i] = np.hstack(fused_image[i])
     fused_image = np.vstack(fused_image)
+    fused_image = fused_image.astype(np.uint8)  # 将图像转换为uint8类型
     cv2.imwrite(fused_dir, fused_image)
 
 def get_filename_list(load_dir):
@@ -57,7 +59,9 @@ def next_batch(batch_size, crop_size, filename_list):
         offset_h = np.random.randint(0, img_h - crop_size)
         offset_w = np.random.randint(0, img_w - crop_size)
         image_crop = image[offset_h:offset_h + crop_size, offset_w:offset_w + crop_size]
-        batch_data.append(image_crop / 127.5 - 1)
+        image_crop = image_crop / 127.5 - 1  # Normalize to [-1, 1]
+        image_crop = np.transpose(image_crop, (2, 0, 1))  # Change shape to [channels, height, width]
+        batch_data.append(image_crop)
     return np.asarray(batch_data)
 
 def next_blur_batch(batch_size, crop_size, filename_list):
@@ -71,9 +75,13 @@ def next_blur_batch(batch_size, crop_size, filename_list):
         offset_h = np.random.randint(0, img_h - crop_size)
         offset_w = np.random.randint(0, img_w - crop_size)
         image_crop = image[offset_h:offset_h + crop_size, offset_w:offset_w + crop_size]
-        batch.append(image_crop / 127.5 - 1)
-        image_blur = cv2.GaussianBlur(image_crop, (5, 5), 0)
-        blur_batch.append(image_blur / 127.5 - 1)
+        image_crop = image_crop / 127.5 - 1  # Normalize to [-1, 1]
+        image_crop = np.transpose(image_crop, (2, 0, 1))  # Change shape to [channels, height, width]
+        batch.append(image_crop)
+        image_blur = cv2.GaussianBlur(image_crop.transpose(1, 2, 0), (5, 5), 0)  # Apply blur
+        image_blur = image_blur / 127.5 - 1  # Normalize to [-1, 1]
+        image_blur = np.transpose(image_blur, (2, 0, 1))  # Change shape to [channels, height, width]
+        blur_batch.append(image_blur)
     return np.asarray(batch), np.asarray(blur_batch)
 
 def vgg_loss(image_a, image_b):

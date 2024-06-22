@@ -18,7 +18,7 @@ def arg_parser():
     parser.add_argument("--crop_size", default=16, type=int)
     parser.add_argument("--batch_size", default=16, type=int)
     parser.add_argument("--pre_train_iter", default=20000, type=int)
-    parser.add_argument("--iter", default=100000, type=int)
+    parser.add_argument("--iter", default=80000, type=int)
     parser.add_argument("--learning_rate", default=1e-4, type=float)
     parser.add_argument("--gpu_fraction", default=0.75, type=float)
     parser.add_argument("--save_dir", default='saved_models')

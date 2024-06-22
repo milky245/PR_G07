@@ -54,12 +54,14 @@ class MultiPatchDiscriminator(nn.Module):
         self.patch_size = patch_size
         self.use_bn = use_bn
         self.conv_layers = nn.ModuleList()
+        in_channels = 3
         for i in range(4):
-            conv = nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1)
+            conv = nn.Conv2d(in_channels, 32, kernel_size=3, stride=1, padding=1)
             self.conv_layers.append(conv)
             if use_bn:
                 self.conv_layers.append(nn.BatchNorm2d(32))
             self.conv_layers.append(nn.LeakyReLU(0.2))
+            in_channels = 32  # 更新输入通道数
         self.conv1 = nn.Conv2d(128, 128, kernel_size=3, stride=2, padding=1)
         if use_bn:
             self.bn1 = nn.BatchNorm2d(128)
