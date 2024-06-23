@@ -39,6 +39,19 @@ def print_fused_image(image, save_dir, name, n):
     fused_image = fused_image.astype(np.uint8)  # 将图像转换为uint8类型
     cv2.imwrite(fused_dir, fused_image)
 
+def print_fused_single_image(image, save_dir, name):
+    fused_dir = os.path.join(save_dir, name)
+    # 将图像像素值转换回0-255范围
+    img = (image + 1) * 127.5
+    img = img.transpose(1, 2, 0)  # 将形状从 [channels, height, width] 转换为 [height, width, channels]
+    # 确保图像值在合法范围内
+    img = np.clip(img, 0, 255)
+    # 将图像转换为uint8类型
+    img = img.astype(np.uint8)
+    # 保存图像
+    cv2.imwrite(fused_dir, img)
+
+
 def get_filename_list(load_dir):
     filename_list = []
     for name in os.listdir(load_dir):
@@ -63,6 +76,26 @@ def next_batch(batch_size, crop_size, filename_list):
         image_crop = np.transpose(image_crop, (2, 0, 1))  # Change shape to [channels, height, width]
         batch_data.append(image_crop)
     return np.asarray(batch_data)
+
+def next_batch_no_resize(batch_size, image_size, filename_list):
+    if len(filename_list) < batch_size:
+        raise ValueError(f"Batch size {batch_size} is larger than the number of available images {len(filename_list)}.")
+    idx = np.arange(0, len(filename_list))
+    np.random.shuffle(idx)
+    idx = idx[:batch_size]
+    batch_data = []
+    for i in range(batch_size):
+        image = cv2.imread(filename_list[idx[i]])
+        if image is None:
+            raise ValueError(f"Image at {filename_list[idx[i]]} could not be read.")
+        image = cv2.resize(image, (image_size, image_size))  # 将图像调整到指定大小
+        if np.max(image) < 1.5:
+            image = (image + 1) * 127.5
+        image = image / 127.5 - 1  # 归一化到 [-1, 1]
+        image = np.transpose(image, (2, 0, 1))  # 将形状从 [height, width, channels] 转换为 [channels, height, width]
+        batch_data.append(image)
+    return np.asarray(batch_data)
+
 
 def next_blur_batch(batch_size, crop_size, filename_list):
     idx = np.arange(0, len(filename_list))
