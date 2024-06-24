@@ -1,59 +1,43 @@
-# Data Acquisition and Preprocessing
+### Data Acquisition and Processing
 
-In this section, we will discuss how to acquire frames from animated movies and preprocess the data for training.
+In this section, we will discuss how data is acquired and processed for training the GAN model. This includes extracting frames from movies and preprocessing the images to prepare them for the model.
 
-## Extracting Frames from Movies
+#### Extracting Frames from Movies
 
-The script `movie_frame_parser.py` is used to extract frames from movie files. Here’s a summary of how it works:
+To create a dataset from movies, frames are extracted at regular intervals. For this project, the movies used are "Your Name" and "Weathering with You" by Makoto Shinkai.
 
 1. **File and Directory Setup:**
-   - The script identifies the root directory and the movie file name using `os.path`.
+   - The script identifies the root directory and the movie file name. It creates a directory structure to store the extracted frames.
 
 2. **Video Capture:**
-   - It uses `cv2.VideoCapture` to read the movie file.
-   - Frames are read in a loop using `capture.read()`.
+   - It uses `cv2.VideoCapture` to read the movie file. Frames are read in a loop using `capture.read()`.
 
 3. **Frame Extraction:**
-   - Every 72nd frame is saved as an image using `cv2.imwrite`.
-   - The images are stored in a directory structure under `frames/frames_<movie_filename>`.
+   - Every 72nd frame is saved as an image using `cv2.imwrite`. This interval ensures a reasonable number of frames are extracted without redundancy.
+   - The images are stored in a directory named `frames/frames_<movie_filename>`.
 
 4. **Main Function:**
-   - Iterates through all movie files in the `movies` directory and calls `extract_frames_from_movie`.
+   - Iterates through all movie files in the `movies` directory and calls `extract_frames_from_movie` for each movie.
 
-Here’s a brief look at the core function:
-```python
-def extract_frames_from_movie(file_name: str):
-    # Initialize video capture and directories
-    # Read frames and save every 72nd frame
-    # Return the total number of extracted frames
-```
-## Data Preprocessing
+This process ensures that a sufficient number of frames are extracted from the movies to create a diverse dataset.
 
-The script `clean_dataset.py` handles various preprocessing tasks. Here’s a summary of its functionality:
+#### Preprocessing the Dataset
+
+The preprocessing script handles various tasks to clean and prepare the dataset for training. Here's a summary of its functionality:
 
 1. **Removing Small Pictures:**
-   - `remove_small_pictures()` removes images smaller than 92x92 pixels from the dataset.
+   - The script removes images smaller than 92x92 pixels from the dataset. These small images are likely not useful for training and can introduce noise.
 
-2. **Increasing Resolution:**
-   - `increase_resolution_getchu()` and `increase_resolution_celeba()` resize images to 256x256 pixels.
-   - These functions ensure uniform image dimensions suitable for model training.
+2. **Arranging Data Correctly:**
+   - The script processes images in a specified folder, cropping and resizing them to 256x256 pixels. This ensures that all images in the dataset have consistent dimensions, which is crucial for training the model.
 
-3. **Arranging Data:**
-   - `arrange_data_correctly(folder)` ensures that all images in the specified folder are cropped and resized to 256x256 pixels, maintaining aspect ratios.
+#### Detailed Steps for Preprocessing
 
-Here are the key function names and their purposes:
-```python
-def remove_small_pictures():
-    # Removes images smaller than 92x92 pixels
+1. **Loading and Resizing Images:**
+   - The images are read from the specified directories and resized to the target dimensions using `cv2.resize`.
 
-def increase_resolution_getchu():
-    # Resizes images in the 'getchu' dataset to 256x256 pixels
+2. **Cropping Images:**
+   - For images that are not square, the script crops them to maintain the aspect ratio. This is done by calculating the midpoint and cropping accordingly.
 
-def increase_resolution_celeba():
-    # Resizes and crops images in the 'celeba' dataset to 256x256 pixels
-
-def arrange_data_correctly(folder):
-    # Crops and resizes images in the specified folder to 256x256 pixels
-```
-
-By extracting frames from animated movies and preprocessing the images to ensure consistent dimensions and quality, we prepare a robust dataset for training the GAN model.
+3. **Saving Preprocessed Images:**
+   - The processed images are saved in new directories, ensuring the original data remains intact for reference or further processing if needed.
