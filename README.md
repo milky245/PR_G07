@@ -36,7 +36,7 @@ data/
 ## 4. Download and Place VGG19 Weights
 
 Download the `vgg19.npy` file from the following link:
-[VGG19 Weights](https://path-to-vgg19-npy-file)
+[VGG19 Weights](https://mega.nz/file/xZ8glS6J#MAnE91ND_WyfZ_8mvkuSa2YcA7q-1ehfSm-Q1fxOvvs)
 
 Place the downloaded `vgg19.npy` file in the same directory as `vgg19.py`.
 
